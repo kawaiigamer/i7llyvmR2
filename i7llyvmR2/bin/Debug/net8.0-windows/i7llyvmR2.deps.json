@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "i7llyvmR2/1.0.0": {
+        "runtime": {
+          "i7llyvmR2.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "i7llyvmR2/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

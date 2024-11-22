@@ -1,0 +1,16 @@
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\i7llyvmR2.exe
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\i7llyvmR2.deps.json
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\i7llyvmR2.runtimeconfig.json
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\i7llyvmR2.dll
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\i7llyvmR2.pdb
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.csproj.GenerateResource.cache
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.GeneratedMSBuildEditorConfig.editorconfig
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.AssemblyInfoInputs.cache
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.AssemblyInfo.cs
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.csproj.CoreCompileInputs.cache
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.dll
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\refint\i7llyvmR2.dll
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.pdb
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.genruntimeconfig.cache
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\ref\i7llyvmR2.dll
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.MainWindow.resources
