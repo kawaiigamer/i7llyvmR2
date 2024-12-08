@@ -5,19 +5,21 @@ using System.Diagnostics;
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Windows.Gaming.Input;
 
 namespace i7llyvmR2
 {
     internal static class i7llyvmMain
     {
-        private static volatile bool _mainLoop = false;
+        private static volatile bool _mainLoopFlag = false;
         private static MainWindow _mainForm;
-        private static XGamepad _gamepad = new();
+        private static XGamepad _gamepad;
         private static GamepadStatistics _statistics;
-       // public static GamepadStatistics MyInt { get { return _statistics; } set { _statistics = value; } }
+        public static Thread _mainLoopThread; 
         private static object _locker = new();
         private const string LogFileName = "i7Log.txt";
-
+        private static float _lastPositionLT = 0;
+        private static float _lastPositionRT = 0;
         private static TimerCallback CreateLock(Action<object?> f, object l, Action<Exception> exeptionCallback, int timeout = 100) => (e) =>
         {
             bool lockTaken = false;
@@ -127,7 +129,7 @@ namespace i7llyvmR2
         private static void UpdateButtonsLabel()
         {
             _mainForm.buttonsStatisticsLabel.BeginInvoke((MethodInvoker)delegate {
-                _mainForm.buttonsStatisticsLabel.Text = _statistics.ToString();
+                _mainForm.buttonsStatisticsLabel.Text = _statistics.ToStringButtons();
             });
         }
 
@@ -148,42 +150,92 @@ namespace i7llyvmR2
             string jsonString = JsonConvert.SerializeObject(_statistics);
             File.WriteAllText(path, jsonString);
         }
+                
+        //private static EventHandler CreateTriggerCallback(Trigger t, ref ulong s, ref float lv, Label l)
+        //                                                                        => (sender, eventArgs) =>
+        //{
+        //    t.IsMovingChanged += (s, e) =>
+        //    {
+        //        if (lv != 1 && t.Value == 1)
+        //        {
+        //            CreateLock((e) =>
+        //            {
+        //                s++;
+        //                l.BeginInvoke((MethodInvoker)delegate
+        //                {
+        //                    l.Text = _statistics.ToStringTriggers();
+        //                });
+        //            }, _locker, exp =>
+        //            { }).Invoke(null);
+
+
+        //            lv = _gamepad.RightTrigger.Value;
+
+
+
+        //        }
+        //        lv = _gamepad.RightTrigger.Value;
+        //    };
+        //}
+            
+        //);    
 
         // 2. Multipie devices
-        // 3. non buttons
-    
+        // loak
+        // Clear button!
+
         [STAThread]
         static void Main()
         {
             string saved_log_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), LogFileName);
             _statistics = LoadStatistics(saved_log_path);
 
-            new System.Threading.Timer(CreateLock((e) =>
+            System.Threading.Timer saveTimer = new System.Threading.Timer(CreateLock((e) =>
             {
                 SaveStatistics(saved_log_path);
             }, _locker, (exp) =>
             {
                 _mainForm.errorLabel.BeginInvoke((MethodInvoker)delegate {
-                    _mainForm.errorLabel.Text = $"Log saving error: {exp.ToString()}";
+                    _mainForm.errorLabel.Text = $"Log saving error: {exp}";
                 });
             }), null, 0, 1000 * 60 * 10);
             
             _gamepad = new();
             _gamepad.ButtonReleased += GamepadButtonReleasedLock;
-            _mainLoop = true;
+            
+            
+            _gamepad.LeftTrigger.IsMovingChanged += (s, e) => {
+                
+                    if (_lastPositionLT != 1 && _gamepad.LeftTrigger.Value == 1)
+                    {
+                        _mainForm.triggerStatisticsLabel.BeginInvoke((MethodInvoker)delegate
+                        {
+                            _statistics.LT++; // lock
+                            _mainForm.triggerStatisticsLabel.Text = _statistics.ToStringTriggers();
+                        });
+                    }
+                _lastPositionLT = _gamepad.LeftTrigger.Value;
+            };
 
-            //foreach (var userIndex in XInputDevice.GetConnectedDeviceIndexes())
-            //{
-            //  MessageBox.Show($"Device {gamepad.Buttons.A.IsPressed} is connected.");
-            // }
+            _gamepad.RightTrigger.IsMovingChanged += (s, e) => {
 
-
-            Thread newThread = new Thread(DoMoreWork);
-            newThread.Start("The answer.");
+                if (_lastPositionRT != 1 && _gamepad.RightTrigger.Value == 1)
+                {
+                    _mainForm.triggerStatisticsLabel.BeginInvoke((MethodInvoker)delegate
+                    {
+                        _statistics.RT++; // lock
+                        _mainForm.triggerStatisticsLabel.Text = _statistics.ToStringTriggers();
+                    });
+                }
+                _lastPositionRT = _gamepad.RightTrigger.Value;
+            };
 
             ApplicationConfiguration.Initialize();
             _mainForm = new MainWindow();
-            _mainForm.buttonsStatisticsLabel.Text = _statistics.ToString();
+
+            _mainForm.buttonsStatisticsLabel.Text = _statistics.ToStringButtons();
+            _mainForm.triggerStatisticsLabel.Text = _statistics.ToStringTriggers();
+
             _mainForm.appManuallyExitEvent += () =>
             {
                 CreateLock((t) =>
@@ -209,13 +261,18 @@ namespace i7llyvmR2
             };
 
             i7llyvmWindowWorker.KeyboardHook(_mainForm);
+
+            _mainLoopThread = new Thread(MainLoopThread);
+            _mainLoopThread.Start();
+            _mainLoopFlag = true;
+
             Application.Run(_mainForm);            
             i7llyvmWindowWorker.KeyboardUnhook(); 
         }
         
-        private static void DoMoreWork(object? obj)
+        private static void MainLoopThread(object? obj)
         {
-            while (_mainLoop)
+            while (_mainLoopFlag)
             {
                 _gamepad.Update();
                 Thread.Sleep(10);

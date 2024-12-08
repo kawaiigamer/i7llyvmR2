@@ -2,11 +2,28 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-	  <TargetPlatform>10.0</TargetPlatform>
+    <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
+	  <!-- TargetPlatform>10.0</TargetPlatform -->
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>	
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Вот это самое главное -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- Это чтобы тащить за собой рантайм До .NET 6 будут рядом лежать нативные библиотеки jit-а и сборщика мусора-->
+    <SelfContained>true</SelfContained>
+    <!-- Это необходимо, чтобы сборщик понимал, для какой ОС нужен экзешник -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Это чтобы ускорить запуск -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- Эти две строки, чтобы уменьшить размер бинарника -->
+
+    
+    
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    
+    
+    <SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>	
   </PropertyGroup>
 
   <ItemGroup>

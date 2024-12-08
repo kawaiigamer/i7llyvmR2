@@ -78,7 +78,6 @@ namespace i7llyvmR2
         }
         internal static void KeyboardUnhook()
         {
-            mainWindow = null;
             InterceptKeys.UnhookWindowsHook();
         }     
     }

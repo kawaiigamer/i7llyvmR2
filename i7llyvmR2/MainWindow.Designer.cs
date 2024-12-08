@@ -38,6 +38,7 @@ namespace i7llyvmR2
             buttonsStatisticsLabel = new Label();
             errorLabel = new Label();
             clearButton = new Button();
+            triggerStatisticsLabel = new Label();
             SuspendLayout();
             // 
             // notifyIcon
@@ -101,12 +102,23 @@ namespace i7llyvmR2
             clearButton.UseVisualStyleBackColor = false;
             clearButton.MouseClick += clearButton_MouseClick;
             // 
+            // triggerStatisticsLabel
+            // 
+            triggerStatisticsLabel.AutoSize = true;
+            triggerStatisticsLabel.Image = Properties.Resources._510xolNamXL;
+            triggerStatisticsLabel.Location = new Point(12, 119);
+            triggerStatisticsLabel.Name = "triggerStatisticsLabel";
+            triggerStatisticsLabel.Size = new Size(69, 20);
+            triggerStatisticsLabel.TabIndex = 7;
+            triggerStatisticsLabel.Text = "RT: 0 LT:0";
+            // 
             // MainWindow
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Window;
             ClientSize = new Size(800, 450);
+            Controls.Add(triggerStatisticsLabel);
             Controls.Add(clearButton);
             Controls.Add(errorLabel);
             Controls.Add(buttonsStatisticsLabel);
@@ -142,5 +154,6 @@ namespace i7llyvmR2
         }
 
         private Button clearButton;
+        public Label triggerStatisticsLabel;
     }
 }
