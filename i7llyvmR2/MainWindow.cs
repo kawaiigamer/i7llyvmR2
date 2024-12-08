@@ -4,7 +4,7 @@ namespace i7llyvmR2
 {
     public partial class MainWindow : Form
     {
-        public const int HTCAPTION = 0x2;
+        private const int HTCAPTION = 0x2;
         private const int WM_NCHITTEST = 0x84;
         private const int HTCLIENT = 0x1;
         private const int WM_NCRBUTTONUP = 0x00A5;
@@ -33,5 +33,13 @@ namespace i7llyvmR2
             InitializeComponent();
         }
 
+        private void MainWindow_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                Hide();
+                notifyIcon.Visible = true;
+            }
+        }
     }
 }

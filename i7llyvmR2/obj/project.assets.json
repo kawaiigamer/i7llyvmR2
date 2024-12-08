@@ -1,11 +1,43 @@
 {
   "version": 3,
   "targets": {
-    "net8.0-windows7.0": {}
+    "net8.0-windows7.0": {
+      "XInputium/1.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0-windows7.0/XInputium.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0-windows7.0/XInputium.dll": {
+            "related": ".xml"
+          }
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "XInputium/1.2.0": {
+      "sha512": "XtpP/7VSQf1PTb31a8dYXhaRX12YlW4CDJYOC7vCqEeAR4+EgVpELmT/WSxTtYHimPQKA1WtfY0itav1Hhel+Q==",
+      "type": "package",
+      "path": "xinputium/1.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "README.md",
+        "lib/net6.0-windows7.0/XInputium.dll",
+        "lib/net6.0-windows7.0/XInputium.xml",
+        "xinputium.1.2.0.nupkg.sha512",
+        "xinputium.nuspec"
+      ]
+    }
+  },
   "projectFileDependencyGroups": {
-    "net8.0-windows7.0": []
+    "net8.0-windows7.0": [
+      "XInputium >= 1.2.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\Юкiе\\.nuget\\packages\\": {}
@@ -50,6 +82,12 @@
     "frameworks": {
       "net8.0-windows7.0": {
         "targetAlias": "net8.0-windows",
+        "dependencies": {
+          "XInputium": {
+            "target": "Package",
+            "version": "[1.2.0, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",

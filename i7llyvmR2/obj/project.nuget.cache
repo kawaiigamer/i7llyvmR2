@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "Gn3k3XN2sKjONpafKD5Z2X7V57KVgnf9yyAc7wxsVV0KXxPQOsdy42Y0VYk0qWCtXMvYbejrboU6QkMCvpY37w==",
+  "dgSpecHash": "MxSkuPbBkp3yfNjIEeQ5P2LudNGlFiSBMOeprkmiWlqrwXmukLvOdetcTK9h83XY5AJdSRzfn/sV2/D25x9r1w==",
   "success": true,
   "projectFilePath": "W:\\PROJECTS\\i7llyvmR2\\i7llyvmR2\\i7llyvmR2.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Юкiе\\.nuget\\packages\\xinputium\\1.2.0\\xinputium.1.2.0.nupkg.sha512"
+  ],
   "logs": []
 }

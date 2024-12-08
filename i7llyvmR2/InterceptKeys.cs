@@ -6,13 +6,12 @@ namespace i7llyvmR2
 { 
     internal class InterceptKeys
     {
-        public delegate void LowLevelKeyboardHookDelegate(int nCode, IntPtr wParam, IntPtr lParam);
-
+        public delegate bool LowLevelKeyboardHookDelegate(int nCode, IntPtr wParam, IntPtr lParam);
         private delegate IntPtr LowLevelKeyboardProcDelegate(int nCode, IntPtr wParam, IntPtr lParam);
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
-        private static LowLevelKeyboardHookDelegate _proc;// = HookCallback;
-        private static IntPtr _hookID = IntPtr.Zero;     
+        private static LowLevelKeyboardHookDelegate publicKeyCallback = null;
+        private static IntPtr privateHookId = IntPtr.Zero;     
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook,
@@ -31,15 +30,15 @@ namespace i7llyvmR2
 
         public static void SetWindowsHook(LowLevelKeyboardHookDelegate callback)
         {
-            _proc = callback;
-            _hookID = SetLowLevelHook(PrivateHookCallback);
+            publicKeyCallback = callback;
+            privateHookId = SetLowLevelHook(PrivateKeyHookCallback);
         }
 
         public static void UnhookWindowsHook()
         {
-            if(_hookID != IntPtr.Zero)
+            if(privateHookId != IntPtr.Zero)
             {
-                UnhookWindowsHookEx(_hookID);
+                UnhookWindowsHookEx(privateHookId);
             }            
         }
 
@@ -53,13 +52,16 @@ namespace i7llyvmR2
             }
         }
 
-        private static IntPtr PrivateHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        private static IntPtr PrivateKeyHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN && publicKeyCallback != null)
             {                
-                _proc(nCode, wParam, lParam);               
+                if (publicKeyCallback(nCode, wParam, lParam))
+                {
+                    return 1;
+                }                
             }
-            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+            return CallNextHookEx(privateHookId, nCode, wParam, lParam);
         }
     }
 }
