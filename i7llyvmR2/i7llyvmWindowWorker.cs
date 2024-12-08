@@ -10,7 +10,7 @@ namespace i7llyvmR2
     internal static class i7llyvmWindowWorker
     {
         private static bool appsPressed = false;
-        private static Form mainWindow;
+        private static MainWindow mainWindow;
 
         private const int apps_key = 0x5D;
         private const int slash_key = 0xBF;
@@ -60,7 +60,7 @@ namespace i7llyvmR2
                 case backslash_key:
                     if (appsPressed && mainWindow.Visible)
                     {
-                        Application.Exit();
+                        mainWindow.ManuallyExit();
                     }
                     break;
 
@@ -71,7 +71,7 @@ namespace i7llyvmR2
             return true;
         }
 
-        internal static void KeyboardHook(Form window)
+        internal static void KeyboardHook(MainWindow window)
         {
             mainWindow = window;
             InterceptKeys.SetWindowsHook(PublicKeyHookCallback);

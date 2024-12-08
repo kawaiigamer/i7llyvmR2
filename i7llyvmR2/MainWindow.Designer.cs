@@ -36,6 +36,8 @@ namespace i7llyvmR2
             descrLaerl = new Label();
             descrLabel2 = new Label();
             buttonsStatisticsLabel = new Label();
+            errorLabel = new Label();
+            clearButton = new Button();
             SuspendLayout();
             // 
             // notifyIcon
@@ -78,12 +80,35 @@ namespace i7llyvmR2
             buttonsStatisticsLabel.TabIndex = 3;
             buttonsStatisticsLabel.Text = "A: 0 B: 0 X: 0 Y: 0\r\nLB: 0 RB: 0 LS: 0 RS: 0\r\nStart: 0 Back: 0";
             // 
+            // errorLabel
+            // 
+            errorLabel.AutoSize = true;
+            errorLabel.Location = new Point(-1, 400);
+            errorLabel.Name = "errorLabel";
+            errorLabel.Size = new Size(65, 20);
+            errorLabel.TabIndex = 4;
+            errorLabel.Text = "No Error";
+            // 
+            // clearButton
+            // 
+            clearButton.BackColor = SystemColors.MenuHighlight;
+            clearButton.Font = new Font("Segoe UI", 11.2F);
+            clearButton.Location = new Point(719, 391);
+            clearButton.Name = "clearButton";
+            clearButton.Size = new Size(80, 29);
+            clearButton.TabIndex = 5;
+            clearButton.Text = "Clear";
+            clearButton.UseVisualStyleBackColor = false;
+            clearButton.MouseClick += clearButton_MouseClick;
+            // 
             // MainWindow
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Window;
             ClientSize = new Size(800, 450);
+            Controls.Add(clearButton);
+            Controls.Add(errorLabel);
             Controls.Add(buttonsStatisticsLabel);
             Controls.Add(descrLabel2);
             Controls.Add(descrLaerl);
@@ -107,5 +132,15 @@ namespace i7llyvmR2
         private Label descrLaerl;
         private Label descrLabel2;
         public Label buttonsStatisticsLabel;
+        public Label errorLabel;
+        public delegate void Defaulti7Delegate();
+        public event Defaulti7Delegate appManuallyExitEvent;
+        public event Defaulti7Delegate clearStatisticsEvent;
+        public void ManuallyExit()
+        {
+            this.appManuallyExitEvent();
+        }
+
+        private Button clearButton;
     }
 }

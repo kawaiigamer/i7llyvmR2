@@ -19,3 +19,4 @@ W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.csproj.Assemb
 W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.csproj.Up2Date
 W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\XInputium.dll
 W:\PROJECTS\i7llyvmR2\i7llyvmR2\obj\Debug\net8.0-windows\i7llyvmR2.Properties.Resources.resources
+W:\PROJECTS\i7llyvmR2\i7llyvmR2\bin\Debug\net8.0-windows\Newtonsoft.Json.dll

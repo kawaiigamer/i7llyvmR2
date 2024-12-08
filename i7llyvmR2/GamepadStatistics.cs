@@ -1,6 +1,7 @@
 ﻿
 namespace i7llyvmR2
-{    internal struct GamepadStatistics
+{
+     internal struct GamepadStatistics
     {
         public ulong A;
         public ulong B;
@@ -12,11 +13,16 @@ namespace i7llyvmR2
         public ulong RS;
         public ulong Start;
         public ulong Back;
+        public ulong DU;
+        public ulong DD;
+        public ulong DL;
+        public ulong DR;
 
         public override string ToString()
         {
             return $"A: {A} B: {B} X: {X} Y: {Y}\nLB: {LB} RB: {RB} LS: {LS} RS: {RS}\n" +
-                $"Start: {Start} Back: {Back}";
+                $"Start: {Start} Back: {Back}\n" +
+                $"DPAD Up: {DU} Down: {DD} Right: {DR} Left: {DL}\n";
         }
     }
 }
