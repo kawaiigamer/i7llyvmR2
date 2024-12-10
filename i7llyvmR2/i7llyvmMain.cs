@@ -1,26 +1,23 @@
-using System.Threading;
 using XInputium;
 using XInputium.XInput;
-using System.Diagnostics;
-using System;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Windows.Gaming.Input;
+using System.Threading;
 
 namespace i7llyvmR2
 {
     internal static class i7llyvmMain
     {
+        private static readonly object _locker = new();
         private static volatile bool _mainLoopFlag = false;
         private static MainWindow _mainForm;
         private static XGamepad _gamepad;
         private static GamepadStatistics _statistics;
-        public static Thread _mainLoopThread; 
-        private static object _locker = new();
-        private const string LogFileName = "i7Log.txt";
+        private static Thread _mainLoopThread;
         private static float _lastPositionLT = 0;
         private static float _lastPositionRT = 0;
-        private static TimerCallback CreateLock(Action<object?> f, object l, Action<Exception> exeptionCallback, int timeout = 100) => (e) =>
+        private const string LogFileName = "i7Log.txt";
+        private const int UpdateTimeMsec = 10;
+        private static TimerCallback CreateLock(Action<object?> f, object l, Action<Exception> exceptionCallback, int timeout = 100) => (e) =>
         {
             bool lockTaken = false;
             try
@@ -37,7 +34,7 @@ namespace i7llyvmR2
             }
             catch (Exception exp)
             {
-                exeptionCallback(exp);
+                exceptionCallback(exp);
             }
             finally
             {
@@ -55,9 +52,7 @@ namespace i7llyvmR2
                 GamepadButtonReleased(sender, e);
             }, _locker, (exp) =>
             {
-                _mainForm.errorLabel.BeginInvoke((MethodInvoker)delegate {
-                    _mainForm.errorLabel.Text = exp.ToString();
-                });                
+                UpdateErrorLabel(exp.ToString());              
             }).Invoke(null);
         }
             private static void GamepadButtonReleased(object? sender, DigitalButtonEventArgs<XInputButton> e)
@@ -126,11 +121,19 @@ namespace i7llyvmR2
             UpdateButtonsLabel();
         }
 
-        private static void UpdateButtonsLabel()
+        private static void UpdateButtonsLabel(bool uiThread = false)
         {
-            _mainForm.buttonsStatisticsLabel.BeginInvoke((MethodInvoker)delegate {
-                _mainForm.buttonsStatisticsLabel.Text = _statistics.ToStringButtons();
-            });
+            _mainForm.SetButtonsLabel(_statistics.ToStringButtons(), uiThread);
+        }
+
+        private static void UpdateTriggersLabel(bool uiThread = false)
+        {
+            _mainForm.SetTriggersLabel(_statistics.ToStringTriggers(), uiThread);
+        }
+
+        private static void UpdateErrorLabel(string txt, bool uiThread = false)
+        {
+            _mainForm.SetErrorLabel(txt, uiThread);
         }
 
         private static GamepadStatistics LoadStatistics(string path)
@@ -150,39 +153,11 @@ namespace i7llyvmR2
             string jsonString = JsonConvert.SerializeObject(_statistics);
             File.WriteAllText(path, jsonString);
         }
-                
-        //private static EventHandler CreateTriggerCallback(Trigger t, ref ulong s, ref float lv, Label l)
-        //                                                                        => (sender, eventArgs) =>
-        //{
-        //    t.IsMovingChanged += (s, e) =>
-        //    {
-        //        if (lv != 1 && t.Value == 1)
-        //        {
-        //            CreateLock((e) =>
-        //            {
-        //                s++;
-        //                l.BeginInvoke((MethodInvoker)delegate
-        //                {
-        //                    l.Text = _statistics.ToStringTriggers();
-        //                });
-        //            }, _locker, exp =>
-        //            { }).Invoke(null);
 
+        // TODO:
+        // 1. Multipie devices
+        // 2. Triggers lock
 
-        //            lv = _gamepad.RightTrigger.Value;
-
-
-
-        //        }
-        //        lv = _gamepad.RightTrigger.Value;
-        //    };
-        //}
-            
-        //);    
-
-        // 2. Multipie devices
-        // loak
-        // Clear button!
 
         [STAThread]
         static void Main()
@@ -195,9 +170,7 @@ namespace i7llyvmR2
                 SaveStatistics(saved_log_path);
             }, _locker, (exp) =>
             {
-                _mainForm.errorLabel.BeginInvoke((MethodInvoker)delegate {
-                    _mainForm.errorLabel.Text = $"Log saving error: {exp}";
-                });
+                UpdateErrorLabel($"Log saving error: {exp}");
             }), null, 0, 1000 * 60 * 10);
             
             _gamepad = new();
@@ -208,12 +181,10 @@ namespace i7llyvmR2
                 
                     if (_lastPositionLT != 1 && _gamepad.LeftTrigger.Value == 1)
                     {
-                        _mainForm.triggerStatisticsLabel.BeginInvoke((MethodInvoker)delegate
-                        {
-                            _statistics.LT++; // lock
-                            _mainForm.triggerStatisticsLabel.Text = _statistics.ToStringTriggers();
-                        });
-                    }
+                        _statistics.LT++; // lock
+                        UpdateTriggersLabel();
+
+                   }
                 _lastPositionLT = _gamepad.LeftTrigger.Value;
             };
 
@@ -221,20 +192,17 @@ namespace i7llyvmR2
 
                 if (_lastPositionRT != 1 && _gamepad.RightTrigger.Value == 1)
                 {
-                    _mainForm.triggerStatisticsLabel.BeginInvoke((MethodInvoker)delegate
-                    {
-                        _statistics.RT++; // lock
-                        _mainForm.triggerStatisticsLabel.Text = _statistics.ToStringTriggers();
-                    });
+                    _statistics.RT++; // lock
+                    UpdateTriggersLabel();
                 }
                 _lastPositionRT = _gamepad.RightTrigger.Value;
             };
 
             ApplicationConfiguration.Initialize();
             _mainForm = new MainWindow();
-
-            _mainForm.buttonsStatisticsLabel.Text = _statistics.ToStringButtons();
-            _mainForm.triggerStatisticsLabel.Text = _statistics.ToStringTriggers();
+            UpdateButtonsLabel(true);
+            UpdateTriggersLabel(true);
+            _mainForm.SetUpdateTimeLabel($"{UpdateTimeMsec} msec", true);
 
             _mainForm.appManuallyExitEvent += () =>
             {
@@ -255,6 +223,8 @@ namespace i7llyvmR2
                 {
                     _statistics = new();
                     SaveStatistics(saved_log_path);
+                    UpdateButtonsLabel();
+                    UpdateTriggersLabel();
                 }, _locker, (exp) =>
                 {
                 }).Invoke(null);
@@ -275,7 +245,7 @@ namespace i7llyvmR2
             while (_mainLoopFlag)
             {
                 _gamepad.Update();
-                Thread.Sleep(10);
+                Thread.Sleep(UpdateTimeMsec);
             }           
         }
     }

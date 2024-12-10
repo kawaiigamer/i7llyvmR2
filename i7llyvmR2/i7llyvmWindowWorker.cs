@@ -16,6 +16,7 @@ namespace i7llyvmR2
         private const int slash_key = 0xBF;
         private const int quotes_key = 0xDE;
         private const int backslash_key = 0xDC;
+        private const int plus_key = 0xBB;
 
         private static bool IsMainFormActive() => Form.ActiveForm != mainWindow;
 
@@ -63,6 +64,13 @@ namespace i7llyvmR2
                         mainWindow.ManuallyExit();
                     }
                     break;
+
+                case plus_key:
+                    if (appsPressed)
+                    {
+                        mainWindow.ClearStatistics();
+                    }
+                    break;                    
 
                 default:
                     appsPressed = false;

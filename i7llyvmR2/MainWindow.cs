@@ -42,10 +42,5 @@ namespace i7llyvmR2
             }
         }
 
-        private void clearButton_MouseClick(object sender, MouseEventArgs e)
-        {
-            this.clearStatisticsEvent();
-        }
-
     }
 }

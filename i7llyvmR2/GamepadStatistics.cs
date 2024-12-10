@@ -20,6 +20,7 @@ namespace i7llyvmR2
 
         public ulong RT;
         public ulong LT;
+               
         public string ToStringButtons()
         {
             return $"A: {A} B: {B} X: {X} Y: {Y}\nLB: {LB} RB: {RB} LS: {LS} RS: {RS}\n" +
@@ -31,5 +32,11 @@ namespace i7llyvmR2
         {
             return $"LT: {LT} RT: {RT}";
         }
+
+        public override string ToString()
+        {
+            return $"{ToStringButtons}\n{ToStringTriggers()}";
+        }
+
     }
 }
