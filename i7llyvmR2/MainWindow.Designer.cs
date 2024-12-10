@@ -80,6 +80,7 @@ namespace i7llyvmR2
             buttonsStatisticsLabel.AutoSize = true;
             buttonsStatisticsLabel.BackColor = SystemColors.ScrollBar;
             buttonsStatisticsLabel.BorderStyle = BorderStyle.FixedSingle;
+            buttonsStatisticsLabel.ForeColor = SystemColors.HotTrack;
             buttonsStatisticsLabel.Location = new Point(12, 30);
             buttonsStatisticsLabel.Name = "buttonsStatisticsLabel";
             buttonsStatisticsLabel.Size = new Size(149, 62);
@@ -119,7 +120,7 @@ namespace i7llyvmR2
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.Window;
+            BackColor = Color.Gainsboro;
             ClientSize = new Size(800, 450);
             Controls.Add(updateTimeLabel);
             Controls.Add(triggerStatisticsLabel);
