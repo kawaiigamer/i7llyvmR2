@@ -36,7 +36,7 @@ namespace i7llyvmR2
             notifyIcon = new NotifyIcon(components);
             lineLabel = new Label();
             descrLaerl = new Label();
-            descrLabel2 = new Label();
+            AppsPlusLable = new Label();
             buttonsStatisticsLabel = new Label();
             errorLabel = new Label();
             triggerStatisticsLabel = new Label();
@@ -45,6 +45,7 @@ namespace i7llyvmR2
             // 
             // notifyIcon
             // 
+            notifyIcon.Icon = (Icon)resources.GetObject("notifyIcon.Icon");
             notifyIcon.Text = "i7llymTray";
             // 
             // lineLabel
@@ -59,21 +60,22 @@ namespace i7llyvmR2
             // 
             descrLaerl.AutoSize = true;
             descrLaerl.ForeColor = SystemColors.HotTrack;
-            descrLaerl.Location = new Point(290, 323);
+            descrLaerl.Location = new Point(325, 324);
             descrLaerl.Name = "descrLaerl";
             descrLaerl.Size = new Size(374, 15);
             descrLaerl.TabIndex = 1;
             descrLaerl.Text = "\\ - Quit,  \" - Maximize,  / - Hide,  Right Mouse - Stay on top,  + - Clear";
             // 
-            // descrLabel2
+            // AppsPlusLable
             // 
-            descrLabel2.AutoSize = true;
-            descrLabel2.ForeColor = SystemColors.HotTrack;
-            descrLabel2.Location = new Point(-1, 323);
-            descrLabel2.Name = "descrLabel2";
-            descrLabel2.Size = new Size(48, 15);
-            descrLabel2.TabIndex = 2;
-            descrLabel2.Text = "Apps + ";
+            AppsPlusLable.AutoSize = true;
+            AppsPlusLable.BackColor = Color.Gainsboro;
+            AppsPlusLable.ForeColor = SystemColors.HotTrack;
+            AppsPlusLable.Location = new Point(-1, 323);
+            AppsPlusLable.Name = "AppsPlusLable";
+            AppsPlusLable.Size = new Size(48, 15);
+            AppsPlusLable.TabIndex = 2;
+            AppsPlusLable.Text = "Apps + ";
             // 
             // buttonsStatisticsLabel
             // 
@@ -126,7 +128,7 @@ namespace i7llyvmR2
             Controls.Add(triggerStatisticsLabel);
             Controls.Add(errorLabel);
             Controls.Add(buttonsStatisticsLabel);
-            Controls.Add(descrLabel2);
+            Controls.Add(AppsPlusLable);
             Controls.Add(descrLaerl);
             Controls.Add(lineLabel);
             Enabled = false;
@@ -143,11 +145,8 @@ namespace i7llyvmR2
         }
 
         #endregion
-
-        private NotifyIcon notifyIcon;
         private Label lineLabel;
         private Label descrLaerl;
-        private Label descrLabel2;
         private Label buttonsStatisticsLabel;
         private Label errorLabel;
         private Label updateTimeLabel;
@@ -222,5 +221,8 @@ namespace i7llyvmR2
                 SetTextInUIThread(this.updateTimeLabel, txt);
             }
         }
+
+        public NotifyIcon notifyIcon;
+        public Label AppsPlusLable;
     }
 }

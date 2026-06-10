@@ -22,6 +22,7 @@ namespace i7llyvmR2
         private static readonly TimeSpan MainUpdateLoopTick = TimeSpan.FromMilliseconds(10);
         private static readonly object _locker = new();
         private static bool IsMainFormInactive => Form.ActiveForm != _main_form;
+        private static int _disposed;
         private static IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             const int apps_key = 0x5D;
@@ -30,11 +31,10 @@ namespace i7llyvmR2
             const int backslash_key = 0xDC;
             const int plus_key = 0xBB;
 
-            int vkCode = Marshal.ReadInt32(lParam);
-            switch (vkCode)
+            switch (Marshal.ReadInt32(lParam))
             {
                 case apps_key:
-                    Interlocked.Exchange(ref _apps_pressed, true);
+                    Interlocked.Exchange(ref _apps_pressed, !_apps_pressed);
                     break;
 
                 case slash_key:
@@ -48,11 +48,13 @@ namespace i7llyvmR2
                             }
                             else
                             {
+                                _main_form.notifyIcon.Visible = false;
                                 _main_form.Show();
                             }
                         }
                         else
                         {
+                            _main_form.notifyIcon.Visible = true;
                             _main_form.Hide();
                         }
                     }
@@ -81,9 +83,10 @@ namespace i7llyvmR2
 
                 default:
                     Interlocked.Exchange(ref _apps_pressed, false);
-                    return IntPtr.Zero;
+                    break;
             }
-            return 1;
+            _main_form.AppsPlusLable.BackColor = _apps_pressed ? Color.Blue : Color.Gainsboro;
+            return IntPtr.Zero;
         }
 
         private static void StandartExceptionHandler(Exception exp)
@@ -92,7 +95,7 @@ namespace i7llyvmR2
         }
 
         private static TimerCallback CreateLock(Action<object?> f, object l, Action<Exception> exceptionCallback, int timeout = 1000) => (e) =>
-            {
+        {
                 bool lockTaken = false;
                 try
                 {
@@ -117,7 +120,7 @@ namespace i7llyvmR2
                         Monitor.Exit(l);
                     }
                 }
-            };
+        };
 
         private static void RunLocked(Action a) => CreateLock(_ => a(), _locker, StandartExceptionHandler).Invoke(null);
 
@@ -223,6 +226,8 @@ namespace i7llyvmR2
 
         private static void ReleaseResources()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                return;
             RunLocked(() =>
             {
                 InterceptKeys.UnregisterKeyboardHook();
@@ -247,7 +252,7 @@ namespace i7llyvmR2
             UpdateTriggersLabel(true);
 
             _gamepad = new();
-            _main_form.SetUpdateTimeLabel($"IDX: {_gamepad.Device.UserIndex.ToString()} {MainUpdateLoopTick.Milliseconds} msec", true);
+            _main_form.SetUpdateTimeLabel($"IDX: {_gamepad.Device?.UserIndex.ToString()} {MainUpdateLoopTick.Milliseconds} msec", true);
 
             _gamepad.ButtonReleased += (s, e) => RunLocked(() => GamepadButtonReleased(s, e));
             _gamepad.LeftTrigger.IsMovingChanged += (s, e) => RunLocked(() =>
@@ -303,7 +308,7 @@ namespace i7llyvmR2
             {
                 while (await timer.WaitForNextTickAsync(token))
                 {
-                   _gamepad.Update(); 
+                    _gamepad.Update();
                 }
             }
             catch (OperationCanceledException) { }
