@@ -1,17 +1,14 @@
-﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace i7llyvmR2
-{ 
-    internal class InterceptKeys
+{
+    internal static class InterceptKeys
     {
-        public delegate bool LowLevelKeyboardHookDelegate(int nCode, IntPtr wParam, IntPtr lParam);
-        private delegate IntPtr LowLevelKeyboardProcDelegate(int nCode, IntPtr wParam, IntPtr lParam);
-        private const int WH_KEYBOARD_LL = 13;
-        private const int WM_KEYDOWN = 0x0100;
-        private static LowLevelKeyboardHookDelegate publicKeyCallback = null;
-        private static IntPtr privateHookId = IntPtr.Zero;     
+        public delegate IntPtr LowLevelKeyboardProcDelegate(int nCode, IntPtr wParam, IntPtr lParam);
+        private static IntPtr hook_id = IntPtr.Zero;
+        private static LowLevelKeyboardProcDelegate? _userCallback;
+        private static LowLevelKeyboardProcDelegate? _internalCallback;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook,
@@ -28,40 +25,46 @@ namespace i7llyvmR2
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        public static void SetWindowsHook(LowLevelKeyboardHookDelegate callback)
-        {
-            publicKeyCallback = callback;
-            privateHookId = SetLowLevelHook(PrivateKeyHookCallback);
-        }
+        public static bool IsHooked => hook_id != IntPtr.Zero;
 
-        public static void UnhookWindowsHook()
+        public static void UnregisterKeyboardHook()
         {
-            if(privateHookId != IntPtr.Zero)
+            if (IsHooked)
             {
-                UnhookWindowsHookEx(privateHookId);
-            }            
-        }
-
-        private static IntPtr SetLowLevelHook(LowLevelKeyboardProcDelegate proc)
-        {
-            using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule)
-            {
-                return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
-                    GetModuleHandle(curModule.ModuleName), 0);
-            }
-        }
-
-        private static IntPtr PrivateKeyHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN && publicKeyCallback != null)
-            {                
-                if (publicKeyCallback(nCode, wParam, lParam))
+                try
                 {
-                    return 1;
-                }                
+                    UnhookWindowsHookEx(hook_id);
+                }
+                finally
+                {
+                    hook_id = IntPtr.Zero;
+                    _internalCallback = null;
+                    _userCallback = null;
+                }
             }
-            return CallNextHookEx(privateHookId, nCode, wParam, lParam);
+        }
+
+        public static void RegisterKeyboardHook(LowLevelKeyboardProcDelegate callback)
+        {
+            const int WH_KEYBOARD_LL = 13;
+            UnregisterKeyboardHook();            
+            _userCallback = callback;
+            _internalCallback = (nCode, wParam, lParam) =>
+            {
+                const int WM_KEYDOWN = 0x0100;
+                if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+                {
+                    if (_userCallback != null && _userCallback(nCode, wParam, lParam) != IntPtr.Zero)
+                    {
+                        return (IntPtr)1;
+                    }
+                }
+                return CallNextHookEx(hook_id, nCode, wParam, lParam);
+            };
+            using Process curProcess = Process.GetCurrentProcess();
+            using ProcessModule? curModule = curProcess.MainModule;
+            IntPtr moduleHandle = curModule != null ? GetModuleHandle(curModule.ModuleName) : IntPtr.Zero;
+            hook_id = SetWindowsHookEx(WH_KEYBOARD_LL, _internalCallback, moduleHandle, 0);
         }
     }
 }

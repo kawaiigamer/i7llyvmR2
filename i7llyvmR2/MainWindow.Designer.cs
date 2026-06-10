@@ -50,18 +50,18 @@ namespace i7llyvmR2
             // lineLabel
             // 
             lineLabel.BorderStyle = BorderStyle.Fixed3D;
-            lineLabel.Location = new Point(-1, 429);
+            lineLabel.Location = new Point(-1, 322);
             lineLabel.Name = "lineLabel";
-            lineLabel.Size = new Size(800, 2);
+            lineLabel.Size = new Size(700, 2);
             lineLabel.TabIndex = 0;
             // 
             // descrLaerl
             // 
             descrLaerl.AutoSize = true;
             descrLaerl.ForeColor = SystemColors.HotTrack;
-            descrLaerl.Location = new Point(331, 431);
+            descrLaerl.Location = new Point(290, 323);
             descrLaerl.Name = "descrLaerl";
-            descrLaerl.Size = new Size(468, 20);
+            descrLaerl.Size = new Size(374, 15);
             descrLaerl.TabIndex = 1;
             descrLaerl.Text = "\\ - Quit,  \" - Maximize,  / - Hide,  Right Mouse - Stay on top,  + - Clear";
             // 
@@ -69,9 +69,9 @@ namespace i7llyvmR2
             // 
             descrLabel2.AutoSize = true;
             descrLabel2.ForeColor = SystemColors.HotTrack;
-            descrLabel2.Location = new Point(-1, 431);
+            descrLabel2.Location = new Point(-1, 323);
             descrLabel2.Name = "descrLabel2";
-            descrLabel2.Size = new Size(61, 20);
+            descrLabel2.Size = new Size(48, 15);
             descrLabel2.TabIndex = 2;
             descrLabel2.Text = "Apps + ";
             // 
@@ -81,18 +81,18 @@ namespace i7llyvmR2
             buttonsStatisticsLabel.BackColor = SystemColors.ScrollBar;
             buttonsStatisticsLabel.BorderStyle = BorderStyle.FixedSingle;
             buttonsStatisticsLabel.ForeColor = SystemColors.HotTrack;
-            buttonsStatisticsLabel.Location = new Point(12, 30);
+            buttonsStatisticsLabel.Location = new Point(10, 22);
             buttonsStatisticsLabel.Name = "buttonsStatisticsLabel";
-            buttonsStatisticsLabel.Size = new Size(149, 62);
+            buttonsStatisticsLabel.Size = new Size(118, 47);
             buttonsStatisticsLabel.TabIndex = 3;
             buttonsStatisticsLabel.Text = "A: 0 B: 0 X: 0 Y: 0\r\nLB: 0 RB: 0 LS: 0 RS: 0\r\nStart: 0 Back: 0";
             // 
             // errorLabel
             // 
             errorLabel.AutoSize = true;
-            errorLabel.Location = new Point(-1, 400);
+            errorLabel.Location = new Point(-1, 300);
             errorLabel.Name = "errorLabel";
-            errorLabel.Size = new Size(65, 20);
+            errorLabel.Size = new Size(51, 15);
             errorLabel.TabIndex = 4;
             errorLabel.Text = "No Error";
             // 
@@ -101,27 +101,27 @@ namespace i7llyvmR2
             triggerStatisticsLabel.AutoSize = true;
             triggerStatisticsLabel.BackColor = SystemColors.ScrollBar;
             triggerStatisticsLabel.BorderStyle = BorderStyle.FixedSingle;
-            triggerStatisticsLabel.Location = new Point(12, 119);
+            triggerStatisticsLabel.Location = new Point(10, 89);
             triggerStatisticsLabel.Name = "triggerStatisticsLabel";
-            triggerStatisticsLabel.Size = new Size(75, 22);
+            triggerStatisticsLabel.Size = new Size(59, 17);
             triggerStatisticsLabel.TabIndex = 7;
             triggerStatisticsLabel.Text = "RT: 0 LT: 0";
             // 
             // updateTimeLabel
             // 
             updateTimeLabel.AutoSize = true;
-            updateTimeLabel.Location = new Point(735, 400);
+            updateTimeLabel.Location = new Point(602, 300);
             updateTimeLabel.Name = "updateTimeLabel";
-            updateTimeLabel.Size = new Size(33, 20);
+            updateTimeLabel.Size = new Size(25, 15);
             updateTimeLabel.TabIndex = 8;
             updateTimeLabel.Text = "000";
             // 
             // MainWindow
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Gainsboro;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(700, 338);
             Controls.Add(updateTimeLabel);
             Controls.Add(triggerStatisticsLabel);
             Controls.Add(errorLabel);
@@ -132,8 +132,9 @@ namespace i7llyvmR2
             Enabled = false;
             FormBorderStyle = FormBorderStyle.None;
             Icon = (Icon)resources.GetObject("$this.Icon");
-            MaximumSize = new Size(800, 450);
-            MinimumSize = new Size(800, 450);
+            Margin = new Padding(3, 2, 3, 2);
+            MaximumSize = new Size(700, 338);
+            MinimumSize = new Size(700, 338);
             Name = "MainWindow";
             Text = "i7llyvmR2";
             Resize += MainWindow_Resize;
@@ -155,6 +156,14 @@ namespace i7llyvmR2
         public event Defaulti7Delegate appManuallyExitEvent;
         public event Defaulti7Delegate clearStatisticsEvent;
 
+        private void MainWindow_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                Hide();
+                notifyIcon.Visible = true;
+            }
+        }
         private void SetTextInUIThread(Label l, string t) => l.BeginInvoke((MethodInvoker)delegate
         {
             l.Text = t;
@@ -173,34 +182,45 @@ namespace i7llyvmR2
         public void SetButtonsLabel(string txt, bool currentThread = false)
         {
             if (currentThread)
+            {
                 this.buttonsStatisticsLabel.Text = txt;
-            else
-            SetTextInUIThread(this.buttonsStatisticsLabel, txt);
+            } else
+            {
+                SetTextInUIThread(this.buttonsStatisticsLabel, txt);
+            }                
         }
 
         public void SetTriggersLabel(string txt, bool currentThread = false)
         {
             if (currentThread)
+            {
                 this.triggerStatisticsLabel.Text = txt;
-            else
+            } else
+            {
                 SetTextInUIThread(this.triggerStatisticsLabel, txt);
+            }                
         }
+
         public void SetErrorLabel(string txt, bool currentThread = false)
         {
             if (currentThread)
+            {
                 this.errorLabel.Text = txt;
-            else
-            SetTextInUIThread(this.errorLabel, txt);
+            } else
+            {
+                SetTextInUIThread(this.errorLabel, txt);
+            }                
         }        
 
         public void SetUpdateTimeLabel(string txt, bool currentThread = false)
         {
             if (currentThread)
+            {
                 this.updateTimeLabel.Text = txt;
-            else
+            } else 
+            {
                 SetTextInUIThread(this.updateTimeLabel, txt);
+            }
         }
-
     }
-
 }

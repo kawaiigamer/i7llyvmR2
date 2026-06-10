@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.18362.0</TargetFramework>
 	  <!-- TargetPlatform>10.0</TargetPlatform -->
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
+    <UseWindowsForms>True</UseWindowsForms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <!-- Вот это самое главное -->
     <PublishSingleFile>true</PublishSingleFile>
@@ -15,25 +15,22 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <!-- Это чтобы ускорить запуск -->
     <PublishReadyToRun>true</PublishReadyToRun>
-    <!-- Эти две строки, чтобы уменьшить размер бинарника -->
-
-    
-    
-    <ImplicitUsings>enable</ImplicitUsings>
-
-    
-    
-    <SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>	
+    <!-- Эти две строки, чтобы уменьшить размер бинарника -->    
+    <ImplicitUsings>enable</ImplicitUsings>  
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>  
+    <ApplicationIcon>icon.ico</ApplicationIcon>  
+    <StartupObject>i7llyvmR2.i7llyvmMain</StartupObject>  
+    <NuGetAuditMode>direct</NuGetAuditMode>  
+    <UseWPF>False</UseWPF>	
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="XInputium" Version="1.2.0" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Reference Include="Windows.Gaming" />
-    <Reference Include="WindowsBase" />
   </ItemGroup>
   
   <ItemGroup>
@@ -42,13 +39,25 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
   
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

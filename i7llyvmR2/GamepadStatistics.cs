@@ -1,7 +1,7 @@
 ﻿
 namespace i7llyvmR2
 {
-     internal struct GamepadStatistics
+    internal sealed class GamepadStatistics
     {
         public ulong A;
         public ulong B;
@@ -17,7 +17,6 @@ namespace i7llyvmR2
         public ulong DD;
         public ulong DL;
         public ulong DR;
-
         public ulong RT;
         public ulong LT;
                
@@ -35,7 +34,7 @@ namespace i7llyvmR2
 
         public override string ToString()
         {
-            return $"{ToStringButtons}\n{ToStringTriggers()}";
+            return $"{ToStringButtons()}\n{ToStringTriggers()}";
         }
 
     }

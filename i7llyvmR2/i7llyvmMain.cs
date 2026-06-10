@@ -1,61 +1,127 @@
+using Newtonsoft.Json;
+using System.Runtime.InteropServices;
 using XInputium;
 using XInputium.XInput;
-using Newtonsoft.Json;
-using System.Threading;
 
 namespace i7llyvmR2
 {
     internal static class i7llyvmMain
     {
-        private static readonly object _locker = new();
-        private static volatile bool _mainLoopFlag = false;
-        private static MainWindow _mainForm;
+        private static MainWindow _main_form;
         private static XGamepad _gamepad;
+        private static CancellationTokenSource _cts;
+        private static System.Threading.Timer _save_timer;
         private static GamepadStatistics _statistics;
-        private static Thread _mainLoopThread;
         private static float _lastPositionLT = 0;
         private static float _lastPositionRT = 0;
-        private const string LogFileName = "i7Log.txt";
-        private const int UpdateTimeMsec = 10;
-        private static TimerCallback CreateLock(Action<object?> f, object l, Action<Exception> exceptionCallback, int timeout = 100) => (e) =>
-        {
-            bool lockTaken = false;
-            try
-            {
-                Monitor.TryEnter(l, timeout, ref lockTaken);
-                if (lockTaken)
-                {
-                    f(e);
-                }
-                else
-                {
-                    return;
-                }
-            }
-            catch (Exception exp)
-            {
-                exceptionCallback(exp);
-            }
-            finally
-            {
-                if (lockTaken)
-                {
-                    Monitor.Exit(l);
-                }
-            }
-        };
+        private static bool _apps_pressed = false;
 
-        private static void GamepadButtonReleasedLock(object? sender, DigitalButtonEventArgs<XInputButton> e)
+        private const string LogFileName = "XboxControllerStatistics.json";
+        private static readonly string saved_log_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), LogFileName);
+        private static readonly TimeSpan LogFileUpdateTick = TimeSpan.FromMinutes(4);
+        private static readonly TimeSpan MainUpdateLoopTick = TimeSpan.FromMilliseconds(10);
+        private static readonly object _locker = new();
+        private static bool IsMainFormInactive => Form.ActiveForm != _main_form;
+        private static IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            CreateLock((t) =>
+            const int apps_key = 0x5D;
+            const int slash_key = 0xBF;
+            const int quotes_key = 0xDE;
+            const int backslash_key = 0xDC;
+            const int plus_key = 0xBB;
+
+            int vkCode = Marshal.ReadInt32(lParam);
+            switch (vkCode)
             {
-                GamepadButtonReleased(sender, e);
-            }, _locker, (exp) =>
-            {
-                UpdateErrorLabel(exp.ToString());              
-            }).Invoke(null);
+                case apps_key:
+                    Interlocked.Exchange(ref _apps_pressed, true);
+                    break;
+
+                case slash_key:
+                    if (_apps_pressed)
+                    {
+                        if (IsMainFormInactive)
+                        {
+                            if (_main_form.Visible)
+                            {
+                                _main_form.Activate();
+                            }
+                            else
+                            {
+                                _main_form.Show();
+                            }
+                        }
+                        else
+                        {
+                            _main_form.Hide();
+                        }
+                    }
+                    break;
+
+                case quotes_key:
+                    if (_apps_pressed && _main_form.Visible)
+                    {
+                        _main_form.WindowState = _main_form.WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+                    }
+                    break;
+
+                case backslash_key:
+                    if (_apps_pressed && _main_form.Visible)
+                    {
+                        _main_form.ManuallyExit();
+                    }
+                    break;
+
+                case plus_key:
+                    if (_apps_pressed)
+                    {
+                        _main_form.ClearStatistics();
+                    }
+                    break;
+
+                default:
+                    Interlocked.Exchange(ref _apps_pressed, false);
+                    return IntPtr.Zero;
+            }
+            return 1;
         }
-            private static void GamepadButtonReleased(object? sender, DigitalButtonEventArgs<XInputButton> e)
+
+        private static void StandartExceptionHandler(Exception exp)
+        {
+            UpdateErrorLabel(exp.Message);
+        }
+
+        private static TimerCallback CreateLock(Action<object?> f, object l, Action<Exception> exceptionCallback, int timeout = 1000) => (e) =>
+            {
+                bool lockTaken = false;
+                try
+                {
+                    Monitor.TryEnter(l, timeout, ref lockTaken);
+                    if (lockTaken)
+                    {
+                        f(e);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                catch (Exception exp)
+                {
+                    exceptionCallback(exp);
+                }
+                finally
+                {
+                    if (lockTaken)
+                    {
+                        Monitor.Exit(l);
+                    }
+                }
+            };
+
+        private static void RunLocked(Action a) => CreateLock(_ => a(), _locker, StandartExceptionHandler).Invoke(null);
+
+        private static void GamepadButtonReleased(object? sender, DigitalButtonEventArgs<XInputButton> e)
         {
             switch (e.Button.Button)
             {
@@ -123,130 +189,124 @@ namespace i7llyvmR2
 
         private static void UpdateButtonsLabel(bool uiThread = false)
         {
-            _mainForm.SetButtonsLabel(_statistics.ToStringButtons(), uiThread);
+            _main_form.SetButtonsLabel(_statistics.ToStringButtons(), uiThread);
         }
 
         private static void UpdateTriggersLabel(bool uiThread = false)
         {
-            _mainForm.SetTriggersLabel(_statistics.ToStringTriggers(), uiThread);
+            _main_form.SetTriggersLabel(_statistics.ToStringTriggers(), uiThread);
         }
 
         private static void UpdateErrorLabel(string txt, bool uiThread = false)
         {
-            _mainForm.SetErrorLabel(txt, uiThread);
+            _main_form.SetErrorLabel(txt, uiThread);
         }
 
-        private static GamepadStatistics LoadStatistics(string path)
+        private static GamepadStatistics LoadStatistics()
         {
             try
             {
-                return JsonConvert.DeserializeObject<GamepadStatistics>(File.ReadAllText(path));
+                return JsonConvert.DeserializeObject<GamepadStatistics>(File.ReadAllText(saved_log_path)) ?? new();
             }
-            catch
+            catch (Exception ex) when (ex is FileNotFoundException || ex is JsonException)
             {
+                UpdateErrorLabel($"Exception while loading json statistics: {ex.Message}", true);
                 return new();
             }
         }
 
-        private static void SaveStatistics(string path)
+        private static void SaveStatistics()
         {
             string jsonString = JsonConvert.SerializeObject(_statistics);
-            File.WriteAllText(path, jsonString);
+            File.WriteAllText(saved_log_path, jsonString);
         }
 
-        // TODO:
-        // 1. Multipie devices
-        // 2. Triggers lock
-
+        private static void ReleaseResources()
+        {
+            RunLocked(() =>
+            {
+                InterceptKeys.UnregisterKeyboardHook();
+                _cts.Cancel();
+                _save_timer.Dispose();
+                SaveStatistics();
+            });
+        }
 
         [STAThread]
-        static void Main()
+        static async Task Main()
         {
-            string saved_log_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), LogFileName);
-            _statistics = LoadStatistics(saved_log_path);
+            _save_timer = new System.Threading.Timer(CreateLock((e) =>
+            {
+                SaveStatistics();
+            }, _locker, StandartExceptionHandler), null, LogFileUpdateTick, LogFileUpdateTick);
 
-            System.Threading.Timer saveTimer = new System.Threading.Timer(CreateLock((e) =>
-            {
-                SaveStatistics(saved_log_path);
-            }, _locker, (exp) =>
-            {
-                UpdateErrorLabel($"Log saving error: {exp}");
-            }), null, 0, 1000 * 60 * 10);
-            
+            ApplicationConfiguration.Initialize();
+            _main_form = new MainWindow();
+            _statistics = LoadStatistics();
+            UpdateButtonsLabel(true);
+            UpdateTriggersLabel(true);
+
             _gamepad = new();
-            _gamepad.ButtonReleased += GamepadButtonReleasedLock;
-            
-            
-            _gamepad.LeftTrigger.IsMovingChanged += (s, e) => {
-                
-                    if (_lastPositionLT != 1 && _gamepad.LeftTrigger.Value == 1)
-                    {
-                        _statistics.LT++; // lock
-                        UpdateTriggersLabel();
+            _main_form.SetUpdateTimeLabel($"IDX: {_gamepad.Device.UserIndex.ToString()} {MainUpdateLoopTick.Milliseconds} msec", true);
 
-                   }
+            _gamepad.ButtonReleased += (s, e) => RunLocked(() => GamepadButtonReleased(s, e));
+            _gamepad.LeftTrigger.IsMovingChanged += (s, e) => RunLocked(() =>
+            {
+                if (_lastPositionLT != 1 && _gamepad.LeftTrigger.Value == 1)
+                {
+                    _statistics.LT++;
+                    UpdateTriggersLabel();
+                }
                 _lastPositionLT = _gamepad.LeftTrigger.Value;
-            };
+            });
 
-            _gamepad.RightTrigger.IsMovingChanged += (s, e) => {
-
+            _gamepad.RightTrigger.IsMovingChanged += (s, e) => RunLocked(() =>
+            {
                 if (_lastPositionRT != 1 && _gamepad.RightTrigger.Value == 1)
                 {
-                    _statistics.RT++; // lock
+                    _statistics.RT++;
                     UpdateTriggersLabel();
                 }
                 _lastPositionRT = _gamepad.RightTrigger.Value;
-            };
-
-            ApplicationConfiguration.Initialize();
-            _mainForm = new MainWindow();
-            UpdateButtonsLabel(true);
-            UpdateTriggersLabel(true);
-            _mainForm.SetUpdateTimeLabel($"{UpdateTimeMsec} msec", true);
-
-            _mainForm.appManuallyExitEvent += () =>
+            });
+            _main_form.appManuallyExitEvent += () =>
             {
-                CreateLock((t) =>
-                {
-                    SaveStatistics(saved_log_path);
-                    i7llyvmWindowWorker.KeyboardUnhook();                    
-                }, _locker, (exp) =>
-                {                  
-                }).Invoke(null);
-
+                ReleaseResources();
                 Environment.Exit(Environment.ExitCode);
             };
-
-            _mainForm.clearStatisticsEvent += () =>
+            _main_form.clearStatisticsEvent += () => RunLocked(() =>
             {
-                CreateLock((t) =>
-                {
-                    _statistics = new();
-                    SaveStatistics(saved_log_path);
-                    UpdateButtonsLabel();
-                    UpdateTriggersLabel();
-                }, _locker, (exp) =>
-                {
-                }).Invoke(null);
-            };
+                _statistics = new();
+                SaveStatistics();
+                UpdateButtonsLabel();
+                UpdateTriggersLabel();
+            });
 
-            i7llyvmWindowWorker.KeyboardHook(_mainForm);
+            InterceptKeys.RegisterKeyboardHook(KeyboardHookCallback);
+            _cts = new CancellationTokenSource();
+            Task.Run(async () => await MainUpdateLoop(_cts.Token));
 
-            _mainLoopThread = new Thread(MainLoopThread);
-            _mainLoopThread.Start();
-            _mainLoopFlag = true;
-
-            Application.Run(_mainForm);            
-            i7llyvmWindowWorker.KeyboardUnhook(); 
+            try
+            {
+                Application.Run(_main_form);
+            }
+            finally
+            {
+                ReleaseResources();
+            }
         }
-        
-        private static void MainLoopThread(object? obj)
+
+        private static async Task MainUpdateLoop(CancellationToken token)
         {
-            while (_mainLoopFlag)
+            using PeriodicTimer timer = new(MainUpdateLoopTick);
+            try
             {
-                _gamepad.Update();
-                Thread.Sleep(UpdateTimeMsec);
-            }           
+                while (await timer.WaitForNextTickAsync(token))
+                {
+                   _gamepad.Update(); 
+                }
+            }
+            catch (OperationCanceledException) { }
         }
     }
 }
